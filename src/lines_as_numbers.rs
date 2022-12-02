@@ -1,13 +1,13 @@
-use std::{
-    fs::File,
-    io::{BufReader, Lines},
-};
+use std::io::Error;
 
-pub struct LinesAsNumbers {
-    iter: Lines<BufReader<File>>,
+pub struct LinesAsNumbers<I> {
+    iter: I,
 }
 
-impl Iterator for LinesAsNumbers {
+impl<I> Iterator for LinesAsNumbers<I>
+where
+    I: Iterator<Item = Result<String, Error>>,
+{
     type Item = i32;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -21,12 +21,15 @@ impl Iterator for LinesAsNumbers {
     }
 }
 
-pub trait StringToNumbersTrait {
-    fn as_numbers(self) -> LinesAsNumbers;
+pub trait StringToNumbersTrait<I> {
+    fn as_numbers(self) -> LinesAsNumbers<I>;
 }
 
-impl StringToNumbersTrait for Lines<BufReader<File>> {
-    fn as_numbers(self) -> LinesAsNumbers {
+impl<I> StringToNumbersTrait<I> for I
+where
+    I: Iterator,
+{
+    fn as_numbers(self) -> LinesAsNumbers<I> {
         LinesAsNumbers { iter: self }
     }
 }
