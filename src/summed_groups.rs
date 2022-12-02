@@ -2,7 +2,10 @@ pub struct SummedGroups<I> {
     iter: I,
 }
 
-impl<I> Iterator for SummedGroups<I> where I: Iterator<Item = i32> {
+impl<I> Iterator for SummedGroups<I>
+where
+    I: Iterator<Item = i32>,
+{
     type Item = I::Item;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -19,7 +22,10 @@ pub trait SummedGroupsTrait<I> {
     fn summed_groups(self) -> SummedGroups<I>;
 }
 
-impl<I> SummedGroupsTrait<I> for I where I: Iterator<Item = i32> {
+impl<I> SummedGroupsTrait<I> for I
+where
+    I: Iterator<Item = i32>,
+{
     fn summed_groups(self) -> SummedGroups<I> {
         SummedGroups { iter: self }
     }
