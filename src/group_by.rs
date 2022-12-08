@@ -11,7 +11,7 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         let vec: Self::Item = self.iter.by_ref().take(self.n).collect();
-        if vec.len() >0 {
+        if vec.len() > 0 {
             Some(vec)
         } else {
             None

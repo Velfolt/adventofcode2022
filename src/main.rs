@@ -1,7 +1,7 @@
 mod file;
+mod group_by;
 mod lines_as_numbers;
 mod summed_groups;
-mod group_by;
 
 mod day1;
 mod day2;
