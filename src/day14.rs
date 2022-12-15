@@ -1,13 +1,11 @@
-use std::{
-    borrow::Borrow,
-    collections::HashMap,
-    fmt::Display,
-    ops::{Bound, RangeInclusive},
-};
+use std::{collections::HashMap, fmt::Display};
 
 use regex::Regex;
 
-use crate::file::read_lines;
+use crate::{
+    file::read_lines,
+    grid::{range_inclusive, Grid},
+};
 
 fn rocks() -> Vec<Vec<(i64, i64)>> {
     let regex = Regex::new(r"((\d+),(\d+))( -> )?").unwrap();
@@ -43,6 +41,12 @@ enum Entity {
     SandSource,
 }
 
+impl Default for Entity {
+    fn default() -> Self {
+        Air
+    }
+}
+
 use Entity::*;
 
 impl Display for Entity {
@@ -56,25 +60,7 @@ impl Display for Entity {
     }
 }
 
-struct Cave {
-    cave: HashMap<(i64, i64), Entity>,
-}
-
-impl Cave {
-    fn max_y(&self) -> i64 {
-        self.cave.keys().map(|(_, y)| *y).max().unwrap()
-    }
-
-    fn x_range(&self) -> RangeInclusive<i64> {
-        let keys = self.cave.keys().map(|(x, _)| *x);
-
-        keys.clone().min().unwrap()..=keys.clone().max().unwrap()
-    }
-
-    fn count_sand(&self) -> usize {
-        self.cave.values().filter(|value| **value == Sand).count()
-    }
-
+impl Grid<Entity> {
     fn simulate(
         &mut self,
         sand_source: (i64, i64),
@@ -83,18 +69,18 @@ impl Cave {
         let mut sand_position = (sand_source.0, sand_source.1);
 
         loop {
-            if end_condition(&sand_position, &self.cave) {
+            if end_condition(&sand_position, &self.data) {
                 return None;
             }
 
             let below_blocked = self
-                .cave
+                .data
                 .contains_key(&(sand_position.0, sand_position.1 + 1));
             let below_left_blocked = self
-                .cave
+                .data
                 .contains_key(&(sand_position.0 - 1, sand_position.1 + 1));
             let below_right_blocked = self
-                .cave
+                .data
                 .contains_key(&(sand_position.0 + 1, sand_position.1 + 1));
 
             if below_blocked {
@@ -112,39 +98,12 @@ impl Cave {
             sand_position.1 += 1;
         }
 
-        self.cave.insert(sand_position, Sand);
+        self.data.insert(sand_position, Sand);
         Some(())
     }
 }
 
-impl Display for Cave {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let x_range = self.x_range();
-        let y_range = 0..=self.max_y();
-
-        for y in y_range.clone() {
-            for x in x_range.clone() {
-                write!(f, "{}", self.cave.get(&(x, y)).map_or(Air, |e| *e))?;
-            }
-
-            writeln!(f, "")?;
-        }
-
-        Ok(())
-    }
-}
-
-fn range_inclusive(a: i64, b: i64) -> impl Iterator<Item = i64> {
-    let x: Box<dyn Iterator<Item = i64>>;
-    if b > a {
-        x = Box::new(a..=b)
-    } else {
-        x = Box::new((b..=a).rev())
-    }
-    x
-}
-
-impl From<Vec<Vec<(i64, i64)>>> for Cave {
+impl From<Vec<Vec<(i64, i64)>>> for Grid<Entity> {
     fn from(rocks: Vec<Vec<(i64, i64)>>) -> Self {
         let mut cave = HashMap::new();
 
@@ -166,20 +125,19 @@ impl From<Vec<Vec<(i64, i64)>>> for Cave {
 
         cave.insert((500, 0), SandSource);
 
-        Cave { cave }
+        Grid { data: cave }
     }
 }
 
 pub fn part_1() {
-    let rocks = rocks();
-    let mut cave: Cave = rocks.into();
+    let mut cave: Grid<Entity> = rocks().into();
 
     let max_y = cave.max_y();
 
     while let Some(_) = cave.simulate((500, 0), &|sand_position, _| sand_position.1 > max_y) {}
     println!("{}\n", cave);
 
-    println!("{}", cave.count_sand())
+    println!("{}", cave.count(Sand))
 }
 
 #[test]
@@ -188,19 +146,18 @@ fn test_part_1() {
 }
 
 pub fn part_2() {
-    let rocks = rocks();
-    let mut cave: Cave = rocks.into();
+    let mut cave: Grid<Entity> = rocks().into();
 
     let floor = cave.max_y() + 2;
 
     for x in 300..700 {
-        cave.cave.insert((x, floor), Rock);
+        cave.data.insert((x, floor), Rock);
     }
 
     while let Some(_) = cave.simulate((500, 0), &|_, cave| *cave.get(&(500, 0)).unwrap() == Sand) {}
     println!("{}\n", cave);
 
-    println!("{}", cave.count_sand())
+    println!("{}", cave.count(Sand))
 }
 
 #[test]

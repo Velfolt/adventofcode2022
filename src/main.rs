@@ -2,6 +2,7 @@ mod file;
 mod group_by;
 mod lines_as_numbers;
 mod summed_groups;
+mod grid;
 
 mod day1;
 mod day10;
@@ -17,6 +18,7 @@ mod day9;
 mod day12;
 mod day13;
 mod day14;
+mod day15;
 
 fn main() {
     day1::part_1();
@@ -60,4 +62,7 @@ fn main() {
 
     day14::part_1();
     day14::part_2();
+
+    day15::part_1();
+    day15::part_2();
 }
