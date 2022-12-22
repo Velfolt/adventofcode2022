@@ -8,10 +8,6 @@ impl<T> Grid<T>
 where
     T: PartialEq,
 {
-    pub fn min_y(&self) -> i64 {
-        self.data.keys().map(|(_, y)| *y).min().unwrap()
-    }
-
     pub fn max_y(&self) -> i64 {
         self.data.keys().map(|(_, y)| *y).max().unwrap()
     }
